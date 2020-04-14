@@ -13,11 +13,11 @@ RUN apt-get update && \
 	sudo add-apt-repository \
 		"deb [arch=amd64] https://jfrog.inaccel.com/artifactory/generic/packages/debian /" && \
 	apt-get update && \
-	apt-get install -y inaccel && \
+	apt-get install -y coral-api inaccel && \
 	rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir coral-api inaccel-vitis
-RUN pip install --index-url https://test.pypi.org/simple --no-cache-dir inaccel-sklearn
+RUN pip install --index-url https://test.pypi.org/simple --no-cache-dir inaccel-sklearn inaccel-xgboost
 
 USER ${NB_UID}
 
