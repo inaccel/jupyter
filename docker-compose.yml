@@ -1,0 +1,10 @@
+version: '3.7'
+services:
+  scipy:
+    build: scipy
+    image: inaccel/jupyter:scipy
+    container_name: jupyter-scipy
+    environment:
+    - JUPYTER_ENABLE_LAB=yes
+    ports:
+      - 8888:8888
