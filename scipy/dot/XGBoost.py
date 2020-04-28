@@ -82,9 +82,9 @@ if __name__ == '__main__':
 
     start = timestamp()
     model = xgb.train(params, dtrain, args.num_boost_round)
-    end = timestamp()
+    stop = timestamp()
 
-    print('time=%.3f' % (end - start))
+    print('time=%.3f' % (stop - start))
 
     predictions = model.predict(dtest)
 
