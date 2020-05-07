@@ -17,7 +17,7 @@ RUN apt-get update && \
 	rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir coral-api inaccel-keras inaccel-scikit-learn inaccel-vitis
-RUN pip install --index-url https://test.pypi.org/simple --no-cache-dir inaccel-xgboost
+RUN pip install --extra-index-url https://test.pypi.org/simple --no-cache-dir inaccel-h2o inaccel-xgboost
 
 USER ${NB_UID}
 
