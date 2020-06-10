@@ -1,4 +1,4 @@
-FROM jupyter/scipy-notebook
+FROM jupyter/pyspark-notebook
 
 USER root
 
@@ -33,6 +33,10 @@ RUN pip install --extra-index-url https://test.pypi.org/simple --no-cache-dir \
 RUN jupyter labextension install \
 	jupyterlab-drawio \
 	@ijmbarr/jupyterlab_spellchecker
+
+RUN wget -qO /usr/local/spark/jars/coral-api-1.7.jar http://jfrog.inaccel.com/artifactory/libs-release/com/inaccel/coral-api/1.7/coral-api-1.7.jar && \
+	wget -qO /usr/local/spark/jars/inaccel-spark-2.4.4.jar http://jfrog.inaccel.com/artifactory/libs-release/com/inaccel/inaccel-spark/2.4.4/inaccel-spark-2.4.4.jar && \
+	echo "spark.driver.extraClassPath /usr/local/spark/jars/coral-api-1.7.jar:/usr/local/spark/jars/inaccel-spark-2.4.4.jar" >> /usr/local/spark/conf/spark-defaults.conf
 
 USER ${NB_UID}
 

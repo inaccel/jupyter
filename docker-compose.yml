@@ -1,9 +1,9 @@
 version: '3.7'
 services:
-  scipy:
-    build: scipy
-    image: inaccel/jupyter:scipy
-    container_name: jupyter-scipy
+  lab:
+    build: lab
+    image: inaccel/jupyter:lab
+    container_name: jupyter-lab
     environment:
     - JUPYTER_ENABLE_LAB=yes
     ports:
