@@ -32,11 +32,28 @@ RUN pip install --extra-index-url https://test.pypi.org/simple --no-cache-dir \
 
 RUN jupyter labextension install \
 	jupyterlab-drawio \
-	@ijmbarr/jupyterlab_spellchecker
+	jupyterlab-execute-time \
+	jupyterlab-theme-toggle \
+	jupyterlab-topbar-extension \
+	jupyterlab-topbar-text \
+	@ijmbarr/jupyterlab_spellchecker \
+	@jupyterlab/fasta-extension
 
+RUN apt-get update && \
+	apt-get install -y \
+		moreutils \
+		jq && \
+	rm -rf /var/lib/apt/lists/*
+
+ARG JUPYTERLAB_EXECUTE_TIME=/opt/conda/share/jupyter/lab/schemas/@jupyterlab/notebook-extension/tracker.json
+ARG JUPYTERLAB_TOPBAR_TEXT=/opt/conda/share/jupyter/lab/schemas/jupyterlab-topbar-text/plugin.json
+RUN jq '.properties.recordTiming.default = true' ${JUPYTERLAB_EXECUTE_TIME} | sponge ${JUPYTERLAB_EXECUTE_TIME} && \
+	jq '.properties.editable.default = false | .properties.text.default = "InAccel Cloud"' ${JUPYTERLAB_TOPBAR_TEXT} | sponge ${JUPYTERLAB_TOPBAR_TEXT}
+
+ARG SPARK_DEFAULTS=/usr/local/spark/conf/spark-defaults.conf
 RUN wget -qO /usr/local/spark/jars/coral-api-1.7.jar http://jfrog.inaccel.com/artifactory/libs-release/com/inaccel/coral-api/1.7/coral-api-1.7.jar && \
 	wget -qO /usr/local/spark/jars/inaccel-spark-2.4.4.jar http://jfrog.inaccel.com/artifactory/libs-release/com/inaccel/inaccel-spark/2.4.4/inaccel-spark-2.4.4.jar && \
-	echo "spark.driver.extraClassPath /usr/local/spark/jars/coral-api-1.7.jar:/usr/local/spark/jars/inaccel-spark-2.4.4.jar" >> /usr/local/spark/conf/spark-defaults.conf
+	echo 'spark.driver.extraClassPath /usr/local/spark/jars/coral-api-1.7.jar:/usr/local/spark/jars/inaccel-spark-2.4.4.jar' >> ${SPARK_DEFAULTS}
 
 USER ${NB_UID}
 
