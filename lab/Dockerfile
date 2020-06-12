@@ -51,9 +51,11 @@ RUN jq '.properties.recordTiming.default = true' ${JUPYTERLAB_EXECUTE_TIME} | sp
 	jq '.properties.editable.default = false | .properties.text.default = "InAccel Cloud"' ${JUPYTERLAB_TOPBAR_TEXT} | sponge ${JUPYTERLAB_TOPBAR_TEXT}
 
 ARG SPARK_DEFAULTS=/usr/local/spark/conf/spark-defaults.conf
-RUN wget -qO /usr/local/spark/jars/coral-api-1.7.jar http://jfrog.inaccel.com/artifactory/libs-release/com/inaccel/coral-api/1.7/coral-api-1.7.jar && \
-	wget -qO /usr/local/spark/jars/inaccel-spark-2.4.4.jar http://jfrog.inaccel.com/artifactory/libs-release/com/inaccel/inaccel-spark/2.4.4/inaccel-spark-2.4.4.jar && \
-	echo 'spark.driver.extraClassPath /usr/local/spark/jars/coral-api-1.7.jar:/usr/local/spark/jars/inaccel-spark-2.4.4.jar' >> ${SPARK_DEFAULTS}
+RUN wget -qO /usr/local/spark/jars/coral-api-1.8.jar http://jfrog.inaccel.com/artifactory/libs-release/com/inaccel/coral-api/1.8/coral-api-1.8.jar && \
+	wget -qO /usr/local/spark/jars/inaccel-spark-2.4.5.jar http://jfrog.inaccel.com/artifactory/libs-release/com/inaccel/inaccel-spark/2.4.5/inaccel-spark-2.4.5.jar && \
+	echo 'spark.driver.extraClassPath /usr/local/spark/jars/coral-api-1.8.jar:/usr/local/spark/jars/inaccel-spark-2.4.5.jar' >> ${SPARK_DEFAULTS} && \
+	echo 'spark.driver.memory         4g' >> ${SPARK_DEFAULTS} && \
+	echo 'spark.master                local[4]' >> ${SPARK_DEFAULTS}
 
 USER ${NB_UID}
 
