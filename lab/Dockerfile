@@ -37,7 +37,8 @@ RUN jupyter labextension install \
 	jupyterlab-topbar-extension \
 	jupyterlab-topbar-text \
 	@ijmbarr/jupyterlab_spellchecker \
-	@jupyterlab/fasta-extension
+	@jupyterlab/fasta-extension \
+	@lckr/jupyterlab_variableinspector
 
 RUN apt-get update && \
 	apt-get install -y \
