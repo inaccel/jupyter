@@ -33,6 +33,7 @@ RUN pip install --extra-index-url https://test.pypi.org/simple --no-cache-dir \
 RUN jupyter labextension install \
 	jupyterlab-drawio \
 	jupyterlab-execute-time \
+	jupyterlab-logout \
 	jupyterlab-theme-toggle \
 	jupyterlab-topbar-extension \
 	jupyterlab-topbar-text \
@@ -46,10 +47,12 @@ RUN apt-get update && \
 		jq && \
 	rm -rf /var/lib/apt/lists/*
 
-ARG JUPYTERLAB_EXECUTE_TIME=/opt/conda/share/jupyter/lab/schemas/@jupyterlab/notebook-extension/tracker.json
-ARG JUPYTERLAB_TOPBAR_TEXT=/opt/conda/share/jupyter/lab/schemas/jupyterlab-topbar-text/plugin.json
-RUN jq '.properties.recordTiming.default = true' ${JUPYTERLAB_EXECUTE_TIME} | sponge ${JUPYTERLAB_EXECUTE_TIME} && \
-	jq '.properties.editable.default = false | .properties.text.default = "InAccel Cloud"' ${JUPYTERLAB_TOPBAR_TEXT} | sponge ${JUPYTERLAB_TOPBAR_TEXT}
+ARG JUPYTERLAB_NOTEBOOK=/opt/conda/share/jupyter/lab/schemas/@jupyterlab/notebook-extension/tracker.json
+ARG JUPYTERLAB_TOP_BAR=/opt/conda/share/jupyter/lab/schemas/jupyterlab-topbar-extension/plugin.json
+ARG JUPYTERLAB_TOP_BAR_TEXT=/opt/conda/share/jupyter/lab/schemas/jupyterlab-topbar-text/plugin.json
+RUN jq '.properties.kernelShutdown.default = true | .properties.recordTiming.default = true' ${JUPYTERLAB_NOTEBOOK} | sponge ${JUPYTERLAB_NOTEBOOK} && \
+	jq '.properties.order.default = ["spacer","custom-text","theme-toggle","logout-button"]' ${JUPYTERLAB_TOP_BAR} | sponge ${JUPYTERLAB_TOP_BAR} && \
+	jq '.properties.editable.default = false | .properties.text.default = "InAccel Cloud"' ${JUPYTERLAB_TOP_BAR_TEXT} | sponge ${JUPYTERLAB_TOP_BAR_TEXT}
 
 ARG SPARK_DEFAULTS=/usr/local/spark/conf/spark-defaults.conf
 RUN wget -qO /usr/local/spark/jars/coral-api-1.8.jar http://jfrog.inaccel.com/artifactory/libs-release/com/inaccel/coral-api/1.8/coral-api-1.8.jar && \
