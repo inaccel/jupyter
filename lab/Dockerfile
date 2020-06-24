@@ -28,18 +28,22 @@ RUN pip install --extra-index-url https://test.pypi.org/simple --no-cache-dir \
 	inaccel-vitis \
 	inaccel-xgboost \
 	rise \
-	tensorflow
+	tensorflow \
+	voila
 
 RUN jupyter labextension install \
 	jupyterlab-drawio \
 	jupyterlab-execute-time \
-	jupyterlab-logout \
-	jupyterlab-theme-toggle \
-	jupyterlab-topbar-extension \
-	jupyterlab-topbar-text \
+	@aquirdturtle/collapsible_headings \
 	@ijmbarr/jupyterlab_spellchecker \
 	@jupyterlab/fasta-extension \
-	@lckr/jupyterlab_variableinspector
+	@jupyterlab/geojson-extension \
+	@jupyterlab/github \
+	@jupyterlab/toc \
+	@jupyter-voila/jupyterlab-preview \
+	@krassowski/jupyterlab_go_to_definition \
+	@lckr/jupyterlab_variableinspector \
+	@telamonian/theme-darcula
 
 RUN apt-get update && \
 	apt-get install -y \
@@ -47,12 +51,12 @@ RUN apt-get update && \
 		jq && \
 	rm -rf /var/lib/apt/lists/*
 
+ARG JUPYTERLAB_EXTENSION_MANAGER=/opt/conda/share/jupyter/lab/schemas/@jupyterlab/extensionmanager-extension/plugin.json
 ARG JUPYTERLAB_NOTEBOOK=/opt/conda/share/jupyter/lab/schemas/@jupyterlab/notebook-extension/tracker.json
-ARG JUPYTERLAB_TOP_BAR=/opt/conda/share/jupyter/lab/schemas/jupyterlab-topbar-extension/plugin.json
-ARG JUPYTERLAB_TOP_BAR_TEXT=/opt/conda/share/jupyter/lab/schemas/jupyterlab-topbar-text/plugin.json
-RUN jq '.properties.kernelShutdown.default = true | .properties.recordTiming.default = true' ${JUPYTERLAB_NOTEBOOK} | sponge ${JUPYTERLAB_NOTEBOOK} && \
-	jq '.properties.order.default = ["spacer","custom-text","theme-toggle","logout-button"]' ${JUPYTERLAB_TOP_BAR} | sponge ${JUPYTERLAB_TOP_BAR} && \
-	jq '.properties.editable.default = false | .properties.text.default = "InAccel Cloud"' ${JUPYTERLAB_TOP_BAR_TEXT} | sponge ${JUPYTERLAB_TOP_BAR_TEXT}
+ARG JUPYTERLAB_THEME=/opt/conda/share/jupyter/lab/schemas/@jupyterlab/apputils-extension/themes.json
+RUN jq '.properties.enabled.default = false' ${JUPYTERLAB_EXTENSION_MANAGER} | sponge ${JUPYTERLAB_EXTENSION_MANAGER} && \
+	jq '.properties.kernelShutdown.default = true | .properties.recordTiming.default = true' ${JUPYTERLAB_NOTEBOOK} | sponge ${JUPYTERLAB_NOTEBOOK} && \
+	jq '.properties.theme.default = "theme-darcula" | .properties."theme-scrollbars".default = true' ${JUPYTERLAB_THEME} | sponge ${JUPYTERLAB_THEME}
 
 ARG SPARK_DEFAULTS=/usr/local/spark/conf/spark-defaults.conf
 RUN wget -qO /usr/local/spark/jars/coral-api-1.8.jar http://jfrog.inaccel.com/artifactory/libs-release/com/inaccel/coral-api/1.8/coral-api-1.8.jar && \
