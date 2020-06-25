@@ -53,9 +53,11 @@ RUN apt-get update && \
 
 ARG JUPYTERLAB_EXTENSION_MANAGER=/opt/conda/share/jupyter/lab/schemas/@jupyterlab/extensionmanager-extension/plugin.json
 ARG JUPYTERLAB_NOTEBOOK=/opt/conda/share/jupyter/lab/schemas/@jupyterlab/notebook-extension/tracker.json
+ARG JUPYTERLAB_TERMINAL=/opt/conda/share/jupyter/lab/schemas/@jupyterlab/terminal-extension/plugin.json
 ARG JUPYTERLAB_THEME=/opt/conda/share/jupyter/lab/schemas/@jupyterlab/apputils-extension/themes.json
 RUN jq '.properties.enabled.default = false' ${JUPYTERLAB_EXTENSION_MANAGER} | sponge ${JUPYTERLAB_EXTENSION_MANAGER} && \
 	jq '.properties.kernelShutdown.default = true | .properties.recordTiming.default = true' ${JUPYTERLAB_NOTEBOOK} | sponge ${JUPYTERLAB_NOTEBOOK} && \
+	jq '.properties.theme.default = "dark"' ${JUPYTERLAB_TERMINAL} | sponge ${JUPYTERLAB_TERMINAL} && \
 	jq '.properties.theme.default = "theme-darcula" | .properties."theme-scrollbars".default = true' ${JUPYTERLAB_THEME} | sponge ${JUPYTERLAB_THEME}
 
 ARG SPARK_DEFAULTS=/usr/local/spark/conf/spark-defaults.conf
