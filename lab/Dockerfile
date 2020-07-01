@@ -37,6 +37,7 @@ RUN pip install --extra-index-url https://test.pypi.org/simple --no-cache-dir \
 
 ARG JUPYTERLAB_ICONS=${CONDA_DIR}/share/jupyter/lab/staging/node_modules/@jupyterlab/ui-components/style/icons
 ARG JUPYTERLAB_INDEX=${CONDA_DIR}/share/jupyter/lab/static/index.html
+ARG JUPYTERLAB_THEME=${CONDA_DIR}/share/jupyter/lab/themes/@telamonian/theme-darcula/index.css
 RUN jupyter labextension install \
 		jupyterlab-drawio \
 		jupyterlab-execute-time \
@@ -55,6 +56,7 @@ RUN jupyter labextension install \
 	jupyter lab build && \
 	jupyter lab clean && \
 	sed -i 's/JupyterLab/InAccel Studio/g' ${JUPYTERLAB_INDEX} && \
+	sed -i 's/rgb(90, 90, 90)/rgba(90, 90, 90, 0.3)/g' ${JUPYTERLAB_THEME} && \
 	rm -rf /home/${NB_USER}/.cache/yarn && \
 	rm -rf /home/${NB_USER}/.npm && \
 	fix-permissions ${CONDA_DIR} && \
@@ -62,11 +64,9 @@ RUN jupyter labextension install \
 
 ARG JUPYTERLAB_EXTENSION_MANAGER=${CONDA_DIR}/share/jupyter/lab/schemas/@jupyterlab/extensionmanager-extension/plugin.json
 ARG JUPYTERLAB_NOTEBOOK=${CONDA_DIR}/share/jupyter/lab/schemas/@jupyterlab/notebook-extension/tracker.json
-ARG JUPYTERLAB_TERMINAL=${CONDA_DIR}/share/jupyter/lab/schemas/@jupyterlab/terminal-extension/plugin.json
 ARG JUPYTERLAB_THEME=${CONDA_DIR}/share/jupyter/lab/schemas/@jupyterlab/apputils-extension/themes.json
 RUN jq '.properties.enabled.default = false' ${JUPYTERLAB_EXTENSION_MANAGER} | sponge ${JUPYTERLAB_EXTENSION_MANAGER} && \
 	jq '.properties.kernelShutdown.default = true | .properties.recordTiming.default = true' ${JUPYTERLAB_NOTEBOOK} | sponge ${JUPYTERLAB_NOTEBOOK} && \
-	jq '.properties.theme.default = "dark"' ${JUPYTERLAB_TERMINAL} | sponge ${JUPYTERLAB_TERMINAL} && \
 	jq '.properties.theme.default = "theme-darcula" | .properties."theme-scrollbars".default = true' ${JUPYTERLAB_THEME} | sponge ${JUPYTERLAB_THEME}
 
 ARG SPARK_DEFAULTS=/usr/local/spark/conf/spark-defaults.conf
