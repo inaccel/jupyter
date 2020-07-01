@@ -1,19 +1,22 @@
 FROM jupyter/pyspark-notebook
 
+COPY --chown=root:root slash /
+
 USER root
 
 RUN apt-get update && \
-	apt-get install -y \
-		apt-transport-https \
-		ca-certificates \
-		curl \
+	apt-get install --no-install-recommends -y \
 		gnupg-agent \
+		jq \
+		moreutils \
 		software-properties-common && \
 	curl -fsSL https://jfrog.inaccel.com/artifactory/generic/packages/gpg | apt-key add - && \
-	add-apt-repository \
-		"deb [arch=amd64] https://jfrog.inaccel.com/artifactory/generic/packages/debian /" && \
+	add-apt-repository "deb [arch=amd64] https://jfrog.inaccel.com/artifactory/generic/packages/debian /" && \
 	apt-get update && \
-	apt-get install -y coral-api inaccel && \
+	apt-get install --no-install-recommends -y \
+		coral-api \
+		inaccel && \
+	apt-get clean && \
 	rm -rf /var/lib/apt/lists/*
 
 RUN git clone --depth 1 https://github.com/inaccel/lz4.git && \
@@ -21,40 +24,46 @@ RUN git clone --depth 1 https://github.com/inaccel/lz4.git && \
 	rm -rf lz4
 
 RUN pip install --extra-index-url https://test.pypi.org/simple --no-cache-dir \
-	coral-api \
-	inaccel-h2o \
-	inaccel-keras \
-	inaccel-scikit-learn \
-	inaccel-vitis \
-	inaccel-xgboost \
-	rise \
-	tensorflow \
-	voila
+		coral-api \
+		inaccel-h2o \
+		inaccel-keras \
+		inaccel-scikit-learn \
+		inaccel-vitis \
+		inaccel-xgboost \
+		tensorflow \
+		voila && \
+	fix-permissions ${CONDA_DIR} && \
+	fix-permissions /home/${NB_USER}
 
+ARG JUPYTERLAB_ICONS=${CONDA_DIR}/share/jupyter/lab/staging/node_modules/@jupyterlab/ui-components/style/icons
+ARG JUPYTERLAB_INDEX=${CONDA_DIR}/share/jupyter/lab/static/index.html
 RUN jupyter labextension install \
-	jupyterlab-drawio \
-	jupyterlab-execute-time \
-	@aquirdturtle/collapsible_headings \
-	@ijmbarr/jupyterlab_spellchecker \
-	@jupyterlab/fasta-extension \
-	@jupyterlab/geojson-extension \
-	@jupyterlab/github \
-	@jupyterlab/toc \
-	@jupyter-voila/jupyterlab-preview \
-	@krassowski/jupyterlab_go_to_definition \
-	@lckr/jupyterlab_variableinspector \
-	@telamonian/theme-darcula
+		jupyterlab-drawio \
+		jupyterlab-execute-time \
+		@aquirdturtle/collapsible_headings \
+		@ijmbarr/jupyterlab_spellchecker \
+		@jupyterlab/fasta-extension \
+		@jupyterlab/geojson-extension \
+		@jupyterlab/github \
+		@jupyterlab/toc \
+		@jupyter-voila/jupyterlab-preview \
+		@krassowski/jupyterlab_go_to_definition \
+		@lckr/jupyterlab_variableinspector \
+		@telamonian/theme-darcula && \
+	cp /jupyter.svg ${JUPYTERLAB_ICONS}/jupyter && \
+	echo '#jp-MainLogo svg { height: 21px; width: auto; }' >> ${JUPYTERLAB_ICONS}.css && \
+	jupyter lab build && \
+	jupyter lab clean && \
+	sed -i 's/JupyterLab/InAccel Studio/g' ${JUPYTERLAB_INDEX} && \
+	rm -rf /home/${NB_USER}/.cache/yarn && \
+	rm -rf /home/${NB_USER}/.npm && \
+	fix-permissions ${CONDA_DIR} && \
+	fix-permissions /home/${NB_USER}
 
-RUN apt-get update && \
-	apt-get install -y \
-		moreutils \
-		jq && \
-	rm -rf /var/lib/apt/lists/*
-
-ARG JUPYTERLAB_EXTENSION_MANAGER=/opt/conda/share/jupyter/lab/schemas/@jupyterlab/extensionmanager-extension/plugin.json
-ARG JUPYTERLAB_NOTEBOOK=/opt/conda/share/jupyter/lab/schemas/@jupyterlab/notebook-extension/tracker.json
-ARG JUPYTERLAB_TERMINAL=/opt/conda/share/jupyter/lab/schemas/@jupyterlab/terminal-extension/plugin.json
-ARG JUPYTERLAB_THEME=/opt/conda/share/jupyter/lab/schemas/@jupyterlab/apputils-extension/themes.json
+ARG JUPYTERLAB_EXTENSION_MANAGER=${CONDA_DIR}/share/jupyter/lab/schemas/@jupyterlab/extensionmanager-extension/plugin.json
+ARG JUPYTERLAB_NOTEBOOK=${CONDA_DIR}/share/jupyter/lab/schemas/@jupyterlab/notebook-extension/tracker.json
+ARG JUPYTERLAB_TERMINAL=${CONDA_DIR}/share/jupyter/lab/schemas/@jupyterlab/terminal-extension/plugin.json
+ARG JUPYTERLAB_THEME=${CONDA_DIR}/share/jupyter/lab/schemas/@jupyterlab/apputils-extension/themes.json
 RUN jq '.properties.enabled.default = false' ${JUPYTERLAB_EXTENSION_MANAGER} | sponge ${JUPYTERLAB_EXTENSION_MANAGER} && \
 	jq '.properties.kernelShutdown.default = true | .properties.recordTiming.default = true' ${JUPYTERLAB_NOTEBOOK} | sponge ${JUPYTERLAB_NOTEBOOK} && \
 	jq '.properties.theme.default = "dark"' ${JUPYTERLAB_TERMINAL} | sponge ${JUPYTERLAB_TERMINAL} && \
@@ -65,11 +74,11 @@ RUN wget -qO /usr/local/spark/jars/coral-api-1.8.jar http://jfrog.inaccel.com/ar
 	wget -qO /usr/local/spark/jars/inaccel-spark-2.4.5.jar http://jfrog.inaccel.com/artifactory/libs-release/com/inaccel/inaccel-spark/2.4.5/inaccel-spark-2.4.5.jar && \
 	echo 'spark.driver.extraClassPath /usr/local/spark/jars/coral-api-1.8.jar:/usr/local/spark/jars/inaccel-spark-2.4.5.jar' >> ${SPARK_DEFAULTS} && \
 	echo 'spark.driver.memory         4g' >> ${SPARK_DEFAULTS} && \
-	echo 'spark.master                local[4]' >> ${SPARK_DEFAULTS}
+	echo 'spark.master                local[4]' >> ${SPARK_DEFAULTS} && \
+	rm -rf /home/${NB_USER}/.wget-hsts
 
 USER ${NB_UID}
 
 COPY --chown=${NB_UID}:${NB_GID} dot .
-COPY --chown=root:root slash /
 
 CMD ["eval.sh", "start-notebook.sh", "--NotebookApp.base_url=${NB_PREFIX}", "--NotebookApp.token=''"]
