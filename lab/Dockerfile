@@ -31,10 +31,12 @@ RUN pip install --extra-index-url https://test.pypi.org/simple --no-cache-dir \
 		inaccel-vitis \
 		inaccel-xgboost \
 		tensorflow \
-		voila && \
+		voila \
+		voila-material && \
 	fix-permissions ${CONDA_DIR} && \
 	fix-permissions /home/${NB_USER}
 
+ARG JUPYTER_CONFIG=${CONDA_DIR}/etc/jupyter/jupyter_config.json
 ARG JUPYTERLAB_ICONS=${CONDA_DIR}/share/jupyter/lab/staging/node_modules/@jupyterlab/ui-components/style/icons
 ARG JUPYTERLAB_INDEX=${CONDA_DIR}/share/jupyter/lab/static/index.html
 ARG JUPYTERLAB_THEME=${CONDA_DIR}/share/jupyter/lab/themes/@telamonian/theme-darcula/index.css
@@ -51,6 +53,7 @@ RUN jupyter labextension install \
 		@krassowski/jupyterlab_go_to_definition \
 		@lckr/jupyterlab_variableinspector \
 		@telamonian/theme-darcula && \
+	echo '{ "VoilaConfiguration": { "template": "material" } }' >> ${JUPYTER_CONFIG} && \
 	cp /jupyter.svg ${JUPYTERLAB_ICONS}/jupyter && \
 	echo '#jp-MainLogo svg { height: 21px; width: auto; }' >> ${JUPYTERLAB_ICONS}.css && \
 	jupyter lab build && \
