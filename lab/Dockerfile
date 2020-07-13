@@ -9,7 +9,8 @@ RUN apt-get update && \
 		gnupg-agent \
 		jq \
 		moreutils \
-		software-properties-common && \
+		software-properties-common \
+		zlib1g-dev && \
 	curl -fsSL https://jfrog.inaccel.com/artifactory/generic/packages/gpg | apt-key add - && \
 	add-apt-repository "deb [arch=amd64] https://jfrog.inaccel.com/artifactory/generic/packages/debian /" && \
 	apt-get update && \
@@ -18,6 +19,10 @@ RUN apt-get update && \
 		inaccel && \
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists/*
+
+RUN git clone --depth 1 https://github.com/inaccel/klib.git && \
+	gcc klib/ksw.c -D_KSW_MAIN -lcoral-api -lz -o /opt/conda/bin/ksw && \
+	rm -rf klib
 
 RUN git clone --depth 1 https://github.com/inaccel/lz4.git && \
 	make install -C lz4/programs LN_S="ln -sf" PREFIX="/opt/conda" && \
