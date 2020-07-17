@@ -17,6 +17,7 @@ RUN apt-get update && \
 	apt-get install --no-install-recommends -y \
 		coral-api \
 		inaccel && \
+	mkdir -m 0777 /var/lib/inaccel/shm && \
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists/*
 
