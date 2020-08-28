@@ -46,6 +46,7 @@ ARG JUPYTER_CONFIG=${CONDA_DIR}/etc/jupyter/jupyter_config.json
 ARG JUPYTERLAB_ICONS=${CONDA_DIR}/share/jupyter/lab/staging/node_modules/@jupyterlab/ui-components/style/icons
 ARG JUPYTERLAB_INDEX=${CONDA_DIR}/share/jupyter/lab/static/index.html
 ARG JUPYTERLAB_THEME=${CONDA_DIR}/share/jupyter/lab/themes/@telamonian/theme-darcula/index.css
+ARG JUPYTERLAB_VOILA=${CONDA_DIR}/share/jupyter/voila/templates/material/static
 RUN jupyter labextension install \
 		jupyterlab-drawio \
 		jupyterlab-execute-time \
@@ -60,6 +61,10 @@ RUN jupyter labextension install \
 		@lckr/jupyterlab_variableinspector \
 		@telamonian/theme-darcula && \
 	echo '{ "VoilaConfiguration": { "template": "material" } }' >> ${JUPYTER_CONFIG} && \
+	cp /jupyter.svg ${JUPYTERLAB_VOILA}/voila_logo.svg && \
+	cp /jupyter.svg ${JUPYTERLAB_VOILA}/voila_logo_bleu.svg && \
+	cat ${JUPYTERLAB_THEME} >> ${JUPYTERLAB_VOILA}/materialize.min.css && \
+	echo 'html { background-color: var(--jp-layout-color0); } button:focus { background-color: inherit; } nav .brand-logo { padding-top: 0.5rem; } .nav-wrapper { background-color: #313335 !important; } .voila-spinner-color1 { fill: #bbbbbb !important; } .voila-spinner-color2{ fill: #d97d24 !important; }' >> ${JUPYTERLAB_VOILA}/materialize.min.css && \
 	cp /jupyter.svg ${JUPYTERLAB_ICONS}/jupyter && \
 	echo '#jp-MainLogo svg { height: 21px; width: auto; }' >> ${JUPYTERLAB_ICONS}.css && \
 	jupyter lab build && \
