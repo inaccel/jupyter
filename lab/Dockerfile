@@ -48,7 +48,6 @@ ARG JUPYTERLAB_INDEX=${CONDA_DIR}/share/jupyter/lab/static/index.html
 ARG JUPYTERLAB_THEME=${CONDA_DIR}/share/jupyter/lab/themes/@telamonian/theme-darcula/index.css
 ARG JUPYTERLAB_VOILA=${CONDA_DIR}/share/jupyter/voila/templates/material/static
 RUN jupyter labextension install \
-		jupyterlab-drawio \
 		jupyterlab-execute-time \
 		@aquirdturtle/collapsible_headings \
 		@ijmbarr/jupyterlab_spellchecker \
