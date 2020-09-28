@@ -47,7 +47,7 @@ ARG JUPYTER_CONFIG=${CONDA_DIR}/etc/jupyter/jupyter_config.json
 ARG JUPYTERLAB_ICONS=${CONDA_DIR}/share/jupyter/lab/staging/node_modules/@jupyterlab/ui-components/style/icons
 ARG JUPYTERLAB_INDEX=${CONDA_DIR}/share/jupyter/lab/static/index.html
 ARG JUPYTERLAB_THEME=${CONDA_DIR}/share/jupyter/lab/themes/@telamonian/theme-darcula/index.css
-ARG JUPYTERLAB_VOILA=${CONDA_DIR}/share/jupyter/voila/templates/material/static
+ARG JUPYTERLAB_VOILA=${CONDA_DIR}/share/jupyter/nbconvert/templates/material/static
 RUN jupyter labextension install \
 		jupyterlab-execute-time \
 		@aquirdturtle/collapsible_headings \
