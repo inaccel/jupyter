@@ -35,6 +35,7 @@ RUN pip install --extra-index-url https://test.pypi.org/simple --no-cache-dir \
 		inaccel-h2o \
 		inaccel-keras \
 		inaccel-scikit-learn \
+		inaccel-tf-quant-finance \
 		inaccel-vitis \
 		inaccel-xgboost \
 		tensorflow \
