@@ -32,12 +32,12 @@ RUN git clone --depth 1 https://github.com/inaccel/lz4.git && \
 
 RUN pip install --extra-index-url https://test.pypi.org/simple --no-cache-dir \
 		coral-api \
-		inaccel-h2o \
 		inaccel-keras \
 		inaccel-scikit-learn \
 		inaccel-tf-quant-finance \
 		inaccel-vitis \
 		inaccel-xgboost \
+		nbresuse \
 		tensorflow \
 		voila \
 		voila-material && \
@@ -51,6 +51,8 @@ ARG JUPYTERLAB_THEME=${CONDA_DIR}/share/jupyter/lab/themes/@telamonian/theme-dar
 ARG JUPYTERLAB_VOILA=${CONDA_DIR}/share/jupyter/nbconvert/templates/material/static
 RUN jupyter labextension install \
 		jupyterlab-execute-time \
+		jupyterlab-system-monitor \
+		jupyterlab-topbar-extension \
 		@aquirdturtle/collapsible_headings \
 		@ijmbarr/jupyterlab_spellchecker \
 		@jupyterlab/fasta-extension \
@@ -61,7 +63,7 @@ RUN jupyter labextension install \
 		@krassowski/jupyterlab_go_to_definition \
 		@lckr/jupyterlab_variableinspector \
 		@telamonian/theme-darcula && \
-	echo '{ "VoilaConfiguration": { "template": "material" } }' >> ${JUPYTER_CONFIG} && \
+	echo '{ "ResourceUseDisplay": { "disable_legacy_endpoint": false, "track_cpu_percent": true }, "VoilaConfiguration": { "template": "material" } }' >> ${JUPYTER_CONFIG} && \
 	cp /jupyter.svg ${JUPYTERLAB_VOILA}/voila_logo.svg && \
 	cp /jupyter.svg ${JUPYTERLAB_VOILA}/voila_logo_bleu.svg && \
 	cat ${JUPYTERLAB_THEME} >> ${JUPYTERLAB_VOILA}/materialize.min.css && \
@@ -79,9 +81,11 @@ RUN jupyter labextension install \
 
 ARG JUPYTERLAB_EXTENSION_MANAGER=${CONDA_DIR}/share/jupyter/lab/schemas/@jupyterlab/extensionmanager-extension/plugin.json
 ARG JUPYTERLAB_NOTEBOOK=${CONDA_DIR}/share/jupyter/lab/schemas/@jupyterlab/notebook-extension/tracker.json
+ARG JUPYTERLAB_SYSTEM_MONITOR=${CONDA_DIR}/share/jupyter/lab/schemas/jupyterlab-system-monitor/plugin.json
 ARG JUPYTERLAB_THEME=${CONDA_DIR}/share/jupyter/lab/schemas/@jupyterlab/apputils-extension/themes.json
 RUN jq '.properties.enabled.default = false' ${JUPYTERLAB_EXTENSION_MANAGER} | sponge ${JUPYTERLAB_EXTENSION_MANAGER} && \
 	jq '.properties.kernelShutdown.default = true | .properties.recordTiming.default = true' ${JUPYTERLAB_NOTEBOOK} | sponge ${JUPYTERLAB_NOTEBOOK} && \
+	jq '.properties.memory.default.label = "RAM: "' ${JUPYTERLAB_SYSTEM_MONITOR} | sponge ${JUPYTERLAB_SYSTEM_MONITOR} && \
 	jq '.properties.theme.default = "theme-darcula" | .properties."theme-scrollbars".default = true' ${JUPYTERLAB_THEME} | sponge ${JUPYTERLAB_THEME}
 
 ARG SPARK_DEFAULTS=/usr/local/spark/conf/spark-defaults.conf
