@@ -37,7 +37,9 @@ RUN pip install --extra-index-url https://test.pypi.org/simple --no-cache-dir \
 		inaccel-tf-quant-finance \
 		inaccel-vitis \
 		inaccel-xgboost \
+		ipython-sql \
 		nbresuse \
+		psycopg2-binary \
 		tensorflow \
 		voila \
 		voila-material && \
