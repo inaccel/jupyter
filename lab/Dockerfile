@@ -1,4 +1,4 @@
-FROM jupyter/pyspark-notebook
+FROM jupyter/pyspark-notebook:aec555e49be6
 
 COPY --chown=root:root slash /
 
