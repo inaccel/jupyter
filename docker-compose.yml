@@ -1,5 +1,8 @@
 version: '3.7'
 services:
+  hub:
+    build: hub
+    image: inaccel/jupyter:hub
   lab:
     build: lab
     image: inaccel/jupyter:lab
