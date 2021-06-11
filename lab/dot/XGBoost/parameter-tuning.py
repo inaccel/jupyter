@@ -1,5 +1,4 @@
 import argparse
-import os
 import xgboost as xgb
 
 from sklearn.datasets import fetch_openml
@@ -15,11 +14,6 @@ if __name__ == '__main__':
                         type = float,
                         default = 0.0,
                         help = 'L1 regularization term on weights.')
-    parser.add_argument('--bitstream',
-                        action = 'append',
-                        type = str,
-                        default = [],
-                        help = 'Install a bitstream to the local repository, from a local or a remote source.')
     parser.add_argument('--eta',
                         type = float,
                         default = 0.3,
@@ -51,9 +45,6 @@ if __name__ == '__main__':
                         choices = ['auto', 'exact', 'approx', 'hist', 'gpu_hist', 'fpga_exact'],
                         help = 'The tree construction algorithm used in XGBoost.')
     args = parser.parse_args()
-
-    for bitstream in args.bitstream:
-        os.system('inaccel bitstream install {}'.format(bitstream))
 
     X, y = fetch_openml(args.name, return_X_y = True)
 

@@ -1,3 +1,19 @@
+FROM inaccel/buildpack-deps:grpc AS coral-api
+
+RUN git clone --depth=1 --single-branch https://github.com/inaccel/coral-api /tmp/coral-api \
+ && make --directory=/tmp/coral-api src/main/resources/native/libcoral-api.so
+
+FROM maven:3-jdk-8 AS spark
+
+RUN git clone --depth=1 --single-branch https://github.com/inaccel/coral-api /tmp/coral-api
+
+COPY --from=coral-api /tmp/coral-api/src/main/resources/native/libcoral-api.so /tmp/coral-api/src/main/resources/native/libcoral-api.so
+
+RUN mvn -f /tmp/coral-api install
+
+RUN git clone --depth 1 https://github.com/inaccel/spark.git /tmp/spark && \
+	mvn -f /tmp/spark package
+
 FROM jupyter/pyspark-notebook:aec555e49be6
 
 COPY --chown=root:root slash /
@@ -12,13 +28,12 @@ RUN apt-get update && \
 		moreutils \
 		software-properties-common \
 		zlib1g-dev && \
-	curl -fsSL https://jfrog.inaccel.com/artifactory/generic/packages/gpg | apt-key add - && \
-	add-apt-repository "deb [arch=amd64] https://jfrog.inaccel.com/artifactory/generic/packages/debian /" && \
+	curl -fsSL https://setup.inaccel.com/gpg | apt-key add - && \
+	add-apt-repository "deb [arch=amd64] https://dl.cloudsmith.io/public/inaccel/stable/deb/ubuntu $(lsb_release -cs) main" && \
 	apt-get update && \
 	apt-get install --no-install-recommends -y \
 		coral-api \
-		inaccel && \
-	mkdir -m 0777 /var/lib/inaccel/shm && \
+		inaccel-cli && \
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists/*
 
@@ -31,20 +46,53 @@ RUN git clone --depth 1 https://github.com/inaccel/lz4.git && \
 	rm -rf lz4
 
 RUN pip install --extra-index-url https://test.pypi.org/simple --no-cache-dir \
-		coral-api \
-		inaccel-keras \
-		inaccel-scikit-learn \
-		inaccel-tf-quant-finance \
-		inaccel-vitis \
-		inaccel-xgboost \
 		ipython-sql \
 		nbresuse \
 		psycopg2-binary \
-		tensorflow \
+		tensorflow==2.4.* \
 		voila \
 		voila-material && \
 	fix-permissions ${CONDA_DIR} && \
 	fix-permissions /home/${NB_USER}
+
+RUN git clone --branch configurable_allocator --depth 1 https://github.com/mattip/numpy.git && \
+	git -C numpy tag v1.22.0 && \
+	pip install --no-cache-dir ./numpy && \
+	rm -rf numpy
+
+RUN git clone --depth 1 https://github.com/inaccel/numpy-allocator.git && \
+	pip install --no-cache-dir ./numpy-allocator && \
+	rm -rf numpy-allocator
+
+RUN git clone --depth 1 https://github.com/inaccel/coral-api.git && \
+	mkdir -p coral-api/src/main/python/inaccel/coral/native && \
+	cp /usr/lib/libcoral-api.so coral-api/src/main/python/inaccel/coral/native/libcoral-api.so && \
+	pip install --no-cache-dir ./coral-api && \
+	rm -rf coral-api
+
+RUN git clone --depth 1 https://github.com/inaccel/keras.git && \
+	pip install --no-cache-dir ./keras && \
+	rm -rf keras
+
+RUN git clone --depth 1 https://github.com/inaccel/scikit-learn.git && \
+	pip install --no-cache-dir ./scikit-learn && \
+	rm -rf scikit-learn
+
+RUN git clone --depth 1 https://github.com/inaccel/tf-quant-finance.git && \
+	pip install --no-cache-dir ./tf-quant-finance && \
+	rm -rf tf-quant-finance
+
+RUN git clone --depth 1 https://github.com/inaccel/Vitis_Libraries.git && \
+	pip install --no-cache-dir ./Vitis_Libraries/quantitative_finance/L3/python && \
+	rm -rf Vitis_Libraries
+
+RUN git clone --branch coral --depth 1 --recursive https://github.com/inaccel/xgboost.git && \
+	make -C xgboost patch && \
+	make -C xgboost/xgboost all && \
+	cd xgboost/xgboost/python-package && \
+	python setup.py install && \
+	cd ../../.. && \
+	rm -rf xgboost
 
 ARG JUPYTER_CONFIG=${CONDA_DIR}/etc/jupyter/jupyter_config.json
 ARG JUPYTERLAB_ICONS=${CONDA_DIR}/share/jupyter/lab/staging/node_modules/@jupyterlab/ui-components/style/icons
@@ -88,15 +136,14 @@ ARG JUPYTERLAB_THEME=${CONDA_DIR}/share/jupyter/lab/schemas/@jupyterlab/apputils
 RUN jq '.properties.enabled.default = false' ${JUPYTERLAB_EXTENSION_MANAGER} | sponge ${JUPYTERLAB_EXTENSION_MANAGER} && \
 	jq '.properties.kernelShutdown.default = true | .properties.recordTiming.default = true' ${JUPYTERLAB_NOTEBOOK} | sponge ${JUPYTERLAB_NOTEBOOK} && \
 	jq '.properties.memory.default.label = "RAM: "' ${JUPYTERLAB_SYSTEM_MONITOR} | sponge ${JUPYTERLAB_SYSTEM_MONITOR} && \
-	jq '.properties.theme.default = "theme-darcula" | .properties."theme-scrollbars".default = true' ${JUPYTERLAB_THEME} | sponge ${JUPYTERLAB_THEME}
+	jq '.properties.theme.default = "Darcula" | .properties."theme-scrollbars".default = true' ${JUPYTERLAB_THEME} | sponge ${JUPYTERLAB_THEME}
+
+COPY --from=spark /tmp/spark/jars/* /usr/local/spark/jars/
 
 ARG SPARK_DEFAULTS=/usr/local/spark/conf/spark-defaults.conf
-RUN wget -qO /usr/local/spark/jars/coral-api-1.8.jar http://jfrog.inaccel.com/artifactory/libs-release/com/inaccel/coral-api/1.8/coral-api-1.8.jar && \
-	wget -qO /usr/local/spark/jars/inaccel-spark-3.0.0_1.8.jar http://jfrog.inaccel.com/artifactory/libs-release/com/inaccel/inaccel-spark/3.0.0_1.8/inaccel-spark-3.0.0_1.8.jar && \
-	echo 'spark.driver.extraClassPath /usr/local/spark/jars/coral-api-1.8.jar:/usr/local/spark/jars/inaccel-spark-3.0.0_1.8.jar' >> ${SPARK_DEFAULTS} && \
+RUN echo 'spark.driver.extraClassPath /usr/local/spark/jars/coral-api-2.0.0.jar:/usr/local/spark/jars/jna-5.8.0.jar:/usr/local/spark/jars/netty-buffer-4.1.63.Final.jar:/usr/local/spark/jars/inaccel-spark-3.0.2_2.0.0.jar:/usr/local/spark/jars/netty-all-4.1.47.Final.jar:/usr/local/spark/jars/netty-common-4.1.63.Final.jar' >> ${SPARK_DEFAULTS} && \
 	echo 'spark.driver.memory         4g' >> ${SPARK_DEFAULTS} && \
-	echo 'spark.master                local[4]' >> ${SPARK_DEFAULTS} && \
-	rm -rf /home/${NB_USER}/.wget-hsts
+	echo 'spark.master                local[4]' >> ${SPARK_DEFAULTS}
 
 USER ${NB_UID}
 
