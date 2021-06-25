@@ -33,7 +33,8 @@ RUN apt-get update && \
 	apt-get update && \
 	apt-get install --no-install-recommends -y \
 		coral-api \
-		inaccel-cli && \
+		inaccel-cli \
+		inaccel-openssl && \
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists/*
 
