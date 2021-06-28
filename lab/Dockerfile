@@ -25,6 +25,7 @@ RUN apt-get update && \
 		curl \
 		gnupg-agent \
 		jq \
+		libtinfo-dev \
 		moreutils \
 		software-properties-common \
 		zlib1g-dev && \
@@ -145,6 +146,10 @@ ARG SPARK_DEFAULTS=/usr/local/spark/conf/spark-defaults.conf
 RUN echo 'spark.driver.extraClassPath /usr/local/spark/jars/coral-api-2.0.0.jar:/usr/local/spark/jars/jna-5.8.0.jar:/usr/local/spark/jars/netty-buffer-4.1.63.Final.jar:/usr/local/spark/jars/inaccel-spark-3.0.2_2.0.0.jar:/usr/local/spark/jars/netty-all-4.1.47.Final.jar:/usr/local/spark/jars/netty-common-4.1.63.Final.jar' >> ${SPARK_DEFAULTS} && \
 	echo 'spark.driver.memory         4g' >> ${SPARK_DEFAULTS} && \
 	echo 'spark.master                local[4]' >> ${SPARK_DEFAULTS}
+
+ENV C_INCLUDE_PATH=/opt/conda/include
+ENV CPLUS_INCLUDE_PATH=/opt/conda/include
+ENV LIBRARY_PATH=/opt/conda/lib
 
 USER ${NB_UID}
 
