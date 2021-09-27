@@ -48,6 +48,7 @@ RUN git clone --depth 1 https://github.com/inaccel/lz4.git && \
 	rm -rf lz4
 
 RUN pip install --extra-index-url https://test.pypi.org/simple --no-cache-dir \
+		allthekernels \
 		ipython-sql \
 		nbresuse \
 		psycopg2-binary \
@@ -95,6 +96,13 @@ RUN git clone --branch coral --depth 1 --recursive https://github.com/inaccel/xg
 	python setup.py install && \
 	cd ../../.. && \
 	rm -rf xgboost
+
+RUN conda install --quiet --yes \
+		xeus-cling && \
+	conda clean --all -f -y && \
+	jupyter kernelspec uninstall -f -y xcpp11 xcpp14 && \
+	fix-permissions ${CONDA_DIR} && \
+	fix-permissions /home/${NB_USER}
 
 ARG JUPYTER_CONFIG=${CONDA_DIR}/etc/jupyter/jupyter_config.json
 ARG JUPYTERLAB_ICONS=${CONDA_DIR}/share/jupyter/lab/staging/node_modules/@jupyterlab/ui-components/style/icons
