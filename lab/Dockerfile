@@ -3,7 +3,7 @@ FROM maven:3-jdk-8 AS spark
 RUN git clone --depth 1 https://github.com/inaccel/spark.git /tmp/spark \
  && mvn -f /tmp/spark package
 
-FROM jupyter/pyspark-notebook:aec555e49be6
+FROM jupyter/pyspark-notebook
 
 COPY --chown=root:root slash /
 
@@ -35,6 +35,8 @@ RUN pip install --extra-index-url https://test.pypi.org/simple --no-cache-dir \
         inaccel-keras \
         inaccel-scikit-learn \
         ipython-sql \
+        jupyterlab_execute_time \
+        lckr-jupyterlab-variableinspector \
         nbresuse \
         psycopg2-binary \
         tensorflow-cpu==2.7.0 \
@@ -68,7 +70,6 @@ ARG JUPYTERLAB_INDEX=${CONDA_DIR}/share/jupyter/lab/static/index.html
 ARG JUPYTERLAB_THEME=${CONDA_DIR}/share/jupyter/lab/themes/@telamonian/theme-darcula/index.css
 ARG JUPYTERLAB_VOILA=${CONDA_DIR}/share/jupyter/nbconvert/templates/material/static
 RUN jupyter labextension install \
-        jupyterlab-execute-time \
         jupyterlab-system-monitor \
         jupyterlab-topbar-extension \
         @aquirdturtle/collapsible_headings \
@@ -77,9 +78,7 @@ RUN jupyter labextension install \
         @jupyterlab/geojson-extension \
         @jupyterlab/github \
         @jupyterlab/toc \
-        @jupyter-voila/jupyterlab-preview \
         @krassowski/jupyterlab_go_to_definition \
-        @lckr/jupyterlab_variableinspector \
         @telamonian/theme-darcula \
  && echo '{ "ResourceUseDisplay": { "disable_legacy_endpoint": false, "track_cpu_percent": true }, "VoilaConfiguration": { "template": "material" } }' >> ${JUPYTER_CONFIG} \
  && cp /jupyter.svg ${JUPYTERLAB_VOILA}/voila_logo.svg \
@@ -87,7 +86,7 @@ RUN jupyter labextension install \
  && cat ${JUPYTERLAB_THEME} >> ${JUPYTERLAB_VOILA}/materialize.min.css \
  && echo 'html { background-color: var(--jp-layout-color0); } button:focus { background-color: inherit; } nav .brand-logo { padding-top: 0.5rem; } .nav-wrapper { background-color: #313335 !important; } .voila-spinner-color1 { fill: #bbbbbb !important; } .voila-spinner-color2 { fill: #d97d24 !important; }' >> ${JUPYTERLAB_VOILA}/materialize.min.css \
  && cp /jupyter.svg ${JUPYTERLAB_ICONS}/jupyter \
- && echo '#jp-MainLogo svg { height: 21px; width: auto; }' >> ${JUPYTERLAB_ICONS}.css \
+ && echo '#jp-MainLogo { width: auto !important; } #jp-MainLogo svg { height: 21px; width: auto; }' >> ${JUPYTERLAB_ICONS}.css \
  && jupyter lab build \
  && jupyter lab clean \
  && sed -i 's/JupyterLab/InAccel Studio/g' ${JUPYTERLAB_INDEX} \
@@ -121,4 +120,4 @@ USER ${NB_UID}
 
 COPY --chown=${NB_UID}:${NB_GID} dot .
 
-CMD ["eval.sh", "start-notebook.sh", "--NotebookApp.base_url=${NB_PREFIX}", "--NotebookApp.token=''"]
+CMD ["eval.sh", "start-notebook.sh", "--ServerApp.base_url=${NB_PREFIX}", "--ServerApp.token=''"]
