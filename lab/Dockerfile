@@ -3,7 +3,7 @@ FROM maven:3-jdk-8 AS spark
 RUN git clone --depth 1 https://github.com/inaccel/spark.git /tmp/spark \
  && mvn -f /tmp/spark package
 
-FROM jupyter/pyspark-notebook
+FROM jupyter/pyspark-notebook:python-3.9
 
 COPY --chown=root:root slash /
 
