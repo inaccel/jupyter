@@ -11,15 +11,28 @@ USER root
 
 RUN wget --output-document - https://setup.inaccel.com/repository | sh \
  && apt-get install --no-install-recommends -y \
+        automake \
+        autopoint \
         coral-api \
+        gettext \
         inaccel-cli \
         inaccel-openssl \
         jq \
         libtinfo-dev \
         moreutils \
+        rsync \
+        texinfo \
         zlib1g-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+RUN git clone --depth 1 --recursive https://github.com/inaccel/gzip.git \
+ && cd gzip \
+ && ./bootstrap \
+ && ./configure --prefix="/usr" \
+ && make install \
+ && cd .. \
+ && rm -rf gzip
 
 RUN git clone --depth 1 https://github.com/inaccel/klib.git \
  && gcc klib/ksw.c -D_KSW_MAIN -lcoral-api -lz -o /opt/conda/bin/ksw \
@@ -32,6 +45,7 @@ RUN git clone --depth 1 https://github.com/inaccel/lz4.git \
 RUN pip install --extra-index-url https://test.pypi.org/simple --no-cache-dir \
         allthekernels \
         coral-api \
+        inaccel-gzip-zlib \
         inaccel-keras \
         inaccel-scikit-learn \
         ipython-sql \
